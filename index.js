@@ -1,7 +1,26 @@
-var http = require('http');
-http.createServer(function (req, res) {
-  res.writeHead(200, {'Content-Type': 'text/plain'});
-  res.end('Hello Node.JS!');
-}).listen(8080);
+var express = require("express");
+var app = express();
+var http = require("http").Server(app);
+var io = require("socket.io")(http);
 
-console.log('Server running');
+var queue = 1;
+app.get("/", function(req, res) {
+  res.send("Hello Node.JS!");
+  io.on("connection", function(socket) {
+    console.log("a user connected");
+    
+    socket.on('disconnect', function(){
+      console.log('user disconnected');
+    });
+    
+    socket.on('call queue', function(msg){
+      console.log("Chamando fila");
+      queue = queue + 1;
+      io.emit('call queue', queue);
+    });
+  });
+});
+
+http.listen(8080, function(){
+  console.log('listening on *:8080');
+});
